@@ -1,9 +1,9 @@
 from pywinauto.application import Application
-import numpy as np
-
 from PIL import Image, ImageChops
 
+
 class ImageViewer(object):
+	class CaptureError(Exception):pass
 	def connect(self, path):
 		return Application(backend='uia').connect(path=path)
 
@@ -18,30 +18,36 @@ class ImageViewer(object):
 	def stream(self):
 		cache = None
 		while 1:
-			img = self.window.capture_as_image()
+			try:
+				img = self.window.capture_as_image()
+			except Exception as e:
+				raise self.CaptureError(e)
 			if cache==img:continue
 			cache = img
 			img = self.trim(img)
-			img = np.array(img)
 			yield img
 
-class XnView(ImageViewer):
-	def __init__(self, path=XNVIEW_PATH):
-		app = self.connect(path)		# window = app.top_window()
-		window = self.app.window(class_name='Qt5QWindowIcon')
-		window = window.Custom.Pane.Custom
-		self.window = window.Custom
 
 class NoMacs(ImageViewer):
-	def __init__(self, path=NOMACS_PATH):
+	def __init__(self, path=r"nomacs.exe"):
 		app = self.connect(path)
 		window = app.top_window()
-		self.window = window.child_window(auto_id="DkNoMacs.DkCentralWidget", control_type="Custom")
+		self.window = window.child_window(class_name="nmc::DkViewPort")
+
+class XnView(ImageViewer):
+	def __init__(self, path=r'xnviewmp.exe'):
+		app = self.connect(path)
+		window = app.top_window()
+		self.window = window.child_window(class_name="MyBitmapView")
 
 if __name__ == '__main__':
 	import dlib
-	# viewer = XnView()
-	viewer = NoMacs()
+	import numpy as np
+	
+	# viewer = NoMacs()
+	viewer = XnView()
+
 	win = dlib.image_window()
 	for img in viewer.stream():
+		img = np.array(img)
 		win.set_image(img)
