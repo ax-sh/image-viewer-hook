@@ -1,4 +1,4 @@
-from pywinauto.application import Application
+from pywinauto.application import Application, ProcessNotFoundError
 from PIL import Image, ImageChops
 
 
@@ -40,14 +40,23 @@ class XnView(ImageViewer):
 		window = app.top_window()
 		self.window = window.child_window(class_name="MyBitmapView")
 
-if __name__ == '__main__':
+
+def main():
 	import dlib
 	import numpy as np
 	
-	# viewer = NoMacs()
-	viewer = XnView()
+	viewer = NoMacs()
+	# viewer = XnView()
 
 	win = dlib.image_window()
 	for img in viewer.stream():
 		img = np.array(img)
-		win.set_image(img)
+		win.set_image(img)	
+
+if __name__ == '__main__':
+	try:
+		main()
+	except ProcessNotFoundError as e:
+		print("[program not currently open]", e)
+		# raise 
+		

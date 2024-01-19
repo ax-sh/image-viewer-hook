@@ -1,0 +1,1 @@
+Hook image viewer image from XnView or Nomacs on windows
